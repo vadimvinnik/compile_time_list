@@ -27,6 +27,19 @@ static_assert(std::is_same<v, list<int, 3, 1, 0, 2, 4, 5, 6, 7, 8>>::value);
 
 static_assert(foldl<v>::with(0, std::plus<int>()) == 36);
 
+template <typename T, T L, T R>
+struct is_less_t : std::bool_constant<(L < R)>
+{};
+
+template <int X>
+struct is_less_than_5_t: is_less_t<int, X, 5>
+{};
+
+using s = split_on<v, is_less_than_5_t>;
+
+static_assert(std::is_same<s::left, list<int, 3, 1, 0, 2, 4>>::value);
+static_assert(std::is_same<s::right, list<int, 5, 6, 7, 8>>::value);
+
 TEST_CASE("for_each works")
 {
   std::string s;

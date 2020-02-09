@@ -97,6 +97,84 @@ struct revert<list<T>>
   using type = list<T>;
 };
 
+template <
+  typename U,
+  typename V,
+  template <item_t<U>> typename P>
+struct move_while;
+
+template <
+  typename T,
+  typename U,
+  T        Y,
+  typename V,
+  bool     B,
+  template <T> typename P>
+struct move_while_helper;
+
+template <
+  typename T,
+  T...     Xs,
+  T        Y,
+  T...     Ys,
+  template <T> typename P>
+struct move_while_helper<T, list<T, Xs...>, Y, list<T, Ys...>, true, P>
+{
+private:
+  using step = move_while<list<T, Xs..., Y>, list<T, Ys...>, P>;
+
+public:
+  using left = typename step::left;
+  using right = typename step::right;
+};
+
+template <
+  typename T,
+  T...     Xs,
+  T        Y,
+  T...     Ys,
+  template <T> typename P>
+struct move_while_helper<T, list<T, Xs...>, Y, list<T, Ys...>, false, P>
+{
+  using left = list<T, Xs...>;
+  using right = list<T, Y, Ys...>;
+};
+
+template <
+  typename T,
+  T...     Xs,
+  T        Y,
+  T...     Ys,
+  template <T> typename P>
+struct move_while<list<T, Xs...>, list<T, Y, Ys...>, P>
+{
+private:
+  using step = move_while_helper<
+    T,
+    list<T, Xs...>,
+    Y,
+    list<T, Ys...>,
+    P<Y>::value,
+    P>;
+
+public:
+  using left = typename step::left;
+  using right = typename step::right;
+};
+
+template <
+  typename T,
+  T... Xs,
+  template <T> typename P>
+struct move_while<list<T, Xs...>, list<T>, P>
+{
+  using left = list<T, Xs...>;
+  using right = list<T>;
+};
+
+template <typename U, template <item_t<U>> typename P>
+using split_on = move_while<list<item_t<U>>, U, P>;
+
 template <typename U>
 struct for_each;
 
