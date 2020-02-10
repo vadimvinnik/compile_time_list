@@ -40,6 +40,15 @@ using s = span<v, is_less_than_5_t>;
 static_assert(std::is_same<s::left, list<int, 3, 1, 0, 2, 4>>::value);
 static_assert(std::is_same<s::right, list<int, 5, 6, 7, 8>>::value);
 
+template <int X>
+struct is_odd_t: std::bool_constant<(X % 2 != 0)>
+{};
+
+using p = partition<v, is_odd_t>;
+
+static_assert(std::is_same<p::left, list<int, 3, 1, 5, 7>>::value);
+static_assert(std::is_same<p::right, list<int, 0, 2, 4, 6, 8>>::value);
+
 TEST_CASE("for_each works")
 {
   std::string s;

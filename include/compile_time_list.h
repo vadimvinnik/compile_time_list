@@ -159,6 +159,75 @@ template <
   typename T = item_t<U>>
 using span = span_loop<U, list<T>, P>;
 
+template <
+  typename U,
+  typename V,
+  typename W,
+  template <auto> typename P>
+struct partition_loop; // forward, defined further
+
+template <
+  typename U,
+  typename V,
+  typename W,
+  template <auto> typename P,
+  auto X,
+  bool B>
+struct partition_loop_if // only reach this case when B is true
+{
+  using step = partition_loop<U, append_t<V, X>, W, P>;
+};
+
+template <
+  typename U,
+  typename V,
+  typename W,
+  template <auto> typename P,
+  auto X>
+struct partition_loop_if<U, V, W, P, X, false>
+{
+  using step = partition_loop<U, V, append_t<W, X>, P>;
+};
+
+template <
+  typename U,
+  typename V,
+  typename W,
+  template <auto> typename P>
+struct partition_loop // only reached if U is not empty
+{
+private:
+  using step = typename partition_loop_if<
+    tail_t<U>,
+    V,
+    W,
+    P,
+    head_v<U>,
+    P<head_v<U>>::value
+  >::step;
+
+public:
+  using left = typename step::left;
+  using right = typename step::right;
+};
+
+template <
+  typename T,
+  typename V,
+  typename W,
+  template <auto> typename P>
+struct partition_loop<list<T>, V, W, P>
+{
+  using left = V;
+  using right = W;
+};
+
+template <
+  typename U,
+  template <auto> typename P,
+  typename T = item_t<U>>
+using partition = partition_loop<U, list<T>, list<T>, P>;
+
 template <typename U>
 struct for_each; // never reach this case
 
