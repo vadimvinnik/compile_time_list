@@ -94,28 +94,19 @@ struct revert<list<T>>
 template <
   typename U,
   typename V,
-  template <item_t<U>> typename P>
-struct span_loop; // never reach this case
+  template <auto> typename P>
+struct span_loop; // forward, defined further
 
 template <
-  typename T,
   typename U,
-  T        Y,
   typename V,
-  bool     B,
-  template <T> typename P>
-struct span_loop_if; // never reach this case
-
-template <
-  typename T,
-  T...     Xs,
-  T        Y,
-  T...     Ys,
-  template <T> typename P>
-struct span_loop_if<T, list<T, Xs...>, Y, list<T, Ys...>, true, P>
+  template <auto> typename P,
+  auto X,
+  bool B>
+struct span_loop_if // only reach this case when B is true
 {
 private:
-  using step = span_loop<list<T, Xs..., Y>, list<T, Ys...>, P>;
+  using step = span_loop<U, append_t<V, X>, P>;
 
 public:
   using left = typename step::left;
@@ -123,33 +114,29 @@ public:
 };
 
 template <
-  typename T,
-  T...     Xs,
-  T        Y,
-  T...     Ys,
-  template <T> typename P>
-struct span_loop_if<T, list<T, Xs...>, Y, list<T, Ys...>, false, P>
+  typename U,
+  typename V,
+  template <auto> typename P,
+  auto X>
+struct span_loop_if<U, V, P, X, false>
 {
-  using left = list<T, Xs...>;
-  using right = list<T, Y, Ys...>;
+  using left = V;
+  using right = prepend_t<U, X>;
 };
 
 template <
-  typename T,
-  T...     Xs,
-  T        Y,
-  T...     Ys,
-  template <T> typename P>
-struct span_loop<list<T, Xs...>, list<T, Y, Ys...>, P>
+  typename U,
+  typename V,
+  template <auto> typename P>
+struct span_loop // only reached if U is not empty
 {
 private:
   using step = span_loop_if<
-    T,
-    list<T, Xs...>,
-    Y,
-    list<T, Ys...>,
-    P<Y>::value,
-    P>;
+    tail_t<U>,
+    V,
+    P,
+    head_v<U>,
+    P<head_v<U>>::value>;
 
 public:
   using left = typename step::left;
@@ -158,16 +145,19 @@ public:
 
 template <
   typename T,
-  T... Xs,
-  template <T> typename P>
-struct span_loop<list<T, Xs...>, list<T>, P>
+  typename V,
+  template <auto> typename P>
+struct span_loop<list<T>, V, P>
 {
-  using left = list<T, Xs...>;
+  using left = V;
   using right = list<T>;
 };
 
-template <typename U, template <item_t<U>> typename P>
-using span = span_loop<list<item_t<U>>, U, P>;
+template <
+  typename U,
+  template <auto> typename P,
+  typename T = item_t<U>>
+using span = span_loop<U, list<T>, P>;
 
 template <typename U>
 struct for_each; // never reach this case
