@@ -35,7 +35,7 @@ template <int X>
 struct is_less_than_5_t: is_less_t<int, X, 5>
 {};
 
-using s = split_on<v, is_less_than_5_t>;
+using s = span<v, is_less_than_5_t>;
 
 static_assert(std::is_same<s::left, list<int, 3, 1, 0, 2, 4>>::value);
 static_assert(std::is_same<s::right, list<int, 5, 6, 7, 8>>::value);

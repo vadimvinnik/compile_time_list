@@ -15,10 +15,7 @@ template <typename U>
 using item_t = typename U::item_type;
 
 template <typename U>
-constexpr auto size()
-{
-  return U::size;
-}
+constexpr auto size_v = U::size;
 
 template <typename U, item_t<U> X>
 struct append; // never reach this case
@@ -57,10 +54,10 @@ template <typename U, typename V>
 using concat_t = typename concat<U, V>::type;
 
 template <typename U>
-struct split; // never reach this case
+struct uncons; // never reach this case
 
 template <typename T, T X, T... Xs>
-struct split<list<T, X, Xs...>>
+struct uncons<list<T, X, Xs...>>
 {
   static constexpr T head = X;
 
@@ -68,16 +65,13 @@ struct split<list<T, X, Xs...>>
 };
 
 template <typename U>
-using tail_t = typename split<U>::tail;
+using tail_t = typename uncons<U>::tail;
 
 template <typename U>
-constexpr item_t<U> head()
-{
-  return split<U>::head;
-}
+constexpr item_t<U> head_v = uncons<U>::head;
 
 template <typename U>
-struct revert;
+struct revert; // forward, defined further
 
 template <typename U>
 using revert_t = typename revert<U>::type;
@@ -87,7 +81,7 @@ struct revert
 {
   using type = append_t<
     revert_t<tail_t<U>>,
-    head<U>()
+    head_v<U>
   >;
 };
 
@@ -101,7 +95,7 @@ template <
   typename U,
   typename V,
   template <item_t<U>> typename P>
-struct move_while;
+struct span_loop; // never reach this case
 
 template <
   typename T,
@@ -110,7 +104,7 @@ template <
   typename V,
   bool     B,
   template <T> typename P>
-struct move_while_helper;
+struct span_loop_if; // never reach this case
 
 template <
   typename T,
@@ -118,10 +112,10 @@ template <
   T        Y,
   T...     Ys,
   template <T> typename P>
-struct move_while_helper<T, list<T, Xs...>, Y, list<T, Ys...>, true, P>
+struct span_loop_if<T, list<T, Xs...>, Y, list<T, Ys...>, true, P>
 {
 private:
-  using step = move_while<list<T, Xs..., Y>, list<T, Ys...>, P>;
+  using step = span_loop<list<T, Xs..., Y>, list<T, Ys...>, P>;
 
 public:
   using left = typename step::left;
@@ -134,7 +128,7 @@ template <
   T        Y,
   T...     Ys,
   template <T> typename P>
-struct move_while_helper<T, list<T, Xs...>, Y, list<T, Ys...>, false, P>
+struct span_loop_if<T, list<T, Xs...>, Y, list<T, Ys...>, false, P>
 {
   using left = list<T, Xs...>;
   using right = list<T, Y, Ys...>;
@@ -146,10 +140,10 @@ template <
   T        Y,
   T...     Ys,
   template <T> typename P>
-struct move_while<list<T, Xs...>, list<T, Y, Ys...>, P>
+struct span_loop<list<T, Xs...>, list<T, Y, Ys...>, P>
 {
 private:
-  using step = move_while_helper<
+  using step = span_loop_if<
     T,
     list<T, Xs...>,
     Y,
@@ -166,17 +160,17 @@ template <
   typename T,
   T... Xs,
   template <T> typename P>
-struct move_while<list<T, Xs...>, list<T>, P>
+struct span_loop<list<T, Xs...>, list<T>, P>
 {
   using left = list<T, Xs...>;
   using right = list<T>;
 };
 
 template <typename U, template <item_t<U>> typename P>
-using split_on = move_while<list<item_t<U>>, U, P>;
+using span = span_loop<list<item_t<U>>, U, P>;
 
 template <typename U>
-struct for_each;
+struct for_each; // never reach this case
 
 template <typename T, T... Xs>
 struct for_each<list<T, Xs...>>
@@ -194,7 +188,7 @@ struct foldl
   template <typename S, typename F>
   static constexpr auto with(S s, F f)
   {
-    return foldl<tail_t<U>>::with(f(s, head<U>()), f);
+    return foldl<tail_t<U>>::with(f(s, head_v<U>), f);
   }
 };
 
@@ -214,7 +208,7 @@ struct foldr
   template <typename S, typename F>
   static constexpr auto with(S s, F f)
   {
-    return f(head<U>(), foldr<tail_t<U>>::with(s, f));
+    return f(head_v<U>, foldr<tail_t<U>>::with(s, f));
   }
 };
 
