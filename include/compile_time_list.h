@@ -228,6 +228,18 @@ template <
   typename T = item_t<U>>
 using partition = partition_loop<U, list<T>, list<T>, P>;
 
+template <typename U, template <auto> typename F>
+struct fmap; // never reach this case
+
+template <typename T, T... Xs, template <auto> typename F>
+struct fmap<list<T, Xs...>, F>
+{
+  using result = list<T, F<Xs>::value...>;
+};
+
+template <typename U, template <auto> typename F>
+using fmap_t = typename fmap<U, F>::result;
+
 template <typename U>
 struct for_each; // never reach this case
 

@@ -49,6 +49,14 @@ using p = partition<v, is_odd_t>;
 static_assert(std::is_same<p::left, list<int, 3, 1, 5, 7>>::value);
 static_assert(std::is_same<p::right, list<int, 0, 2, 4, 6, 8>>::value);
 
+template <int X>
+struct multiply_by_3_t : std::integral_constant<int, X * 3>
+{};
+
+using m = fmap_t<t_5, multiply_by_3_t>;
+
+static_assert(std::is_same<m, list<int, 9, 3, 0, 6, 12>>::value);
+
 TEST_CASE("for_each works")
 {
   std::string s;
