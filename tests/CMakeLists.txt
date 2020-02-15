@@ -4,7 +4,8 @@ project(compile_time_tuple_tests)
 
 add_executable(${PROJECT_NAME}
   main.cpp
-  tests.cpp)
+  run_time.cpp
+  compile_time.cpp)
 
 target_link_libraries(${PROJECT_NAME} CONAN_PKG::catch2)
 
