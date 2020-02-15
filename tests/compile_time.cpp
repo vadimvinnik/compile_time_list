@@ -91,18 +91,6 @@ static_assert(std::is_same<result_3, empty>::value);
 
 } // namespace concat_empty_test
 
-namespace foldl_plus_test
-{
-
-using arg = list<int, 0, 1, 2, 4, 8>;
-constexpr int result = foldl<arg>::with(0, std::plus<int>());
-
-constexpr int expexted = 0 + 1 + 2 + 4 + 8;
-
-static_assert(result == expexted);
-
-} // namespace foldl_plus_test
-
 namespace span_test
 {
 
@@ -178,4 +166,18 @@ using expexted = list<unsigned, 0xA1, 0xB2, 0xC3>;
 static_assert(std::is_same<result, expexted>::value);
 
 } // namespace zip_with_test
+
+namespace fold_plus_test
+{
+
+using arg = list<int, 0, 1, 2, 4, 8>;
+constexpr int result_1 = foldl_v<arg, 0, aux::binary<int, int>::plus>;
+constexpr int result_2 = foldr_v<arg, 0, aux::binary<int, int>::plus>;
+
+constexpr int expexted = 0 + 1 + 2 + 4 + 8;
+
+static_assert(result_1 == expexted);
+static_assert(result_2 == expexted);
+
+} // namespace foldl_plus_test
 

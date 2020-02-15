@@ -289,44 +289,42 @@ struct for_each<list<T, Xs...>>
   }
 };
 
-template <typename U>
+template <typename U, auto S, template <auto, auto> typename F>
+struct foldl;
+
+template <typename U, auto S, template <auto, auto> typename F>
+constexpr auto foldl_v = foldl<U, S, F>::value;
+
+template <typename U, auto S, template <auto, auto> typename F>
 struct foldl
 {
-  template <typename S, typename F>
-  static constexpr auto with(S s, F f)
-  {
-    return foldl<tail_t<U>>::with(f(s, head_v<U>), f);
-  }
+  static constexpr auto value =
+    foldl_v<tail_t<U>, F<S, head_v<U>>::value, F>;
 };
 
-template <typename T>
-struct foldl<list<T>>
+template <typename T, auto S, template <auto, auto> typename F>
+struct foldl<list<T>, S, F>
 {
-  template <typename S, typename F>
-  static constexpr auto with(S s, F)
-  {
-    return s;
-  }
+  static constexpr auto value = S;
 };
 
-template <typename U>
+template <typename U, auto S, template <auto, auto> typename F>
+struct foldr;
+
+template <typename U, auto S, template <auto, auto> typename F>
+constexpr auto foldr_v = foldr<U, S, F>::value;
+
+template <typename U, auto S, template <auto, auto> typename F>
 struct foldr
 {
-  template <typename S, typename F>
-  static constexpr auto with(S s, F f)
-  {
-    return f(head_v<U>, foldr<tail_t<U>>::with(s, f));
-  }
+  static constexpr auto value =
+    F<head_v<U>, foldr_v<tail_t<U>, S, F>>::value;
 };
 
-template <typename T>
-struct foldr<list<T>>
+template <typename T, auto S, template <auto, auto> typename F>
+struct foldr<list<T>, S, F>
 {
-  template <typename S, typename F>
-  static constexpr auto with(S s, F)
-  {
-    return s;
-  }
+  static constexpr auto value = S;
 };
 
 } // namespace compile_time_list
