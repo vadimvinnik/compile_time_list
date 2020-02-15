@@ -7,6 +7,7 @@ using namespace compile_time_list;
 
 namespace aux
 {
+
 template <typename T, T L>
 struct bind_1st
 {
@@ -18,6 +19,16 @@ struct bind_1st
 
   template <T R>
   struct multiply_by : std::integral_constant<int, R * L> {};
+};
+
+template <typename S, typename T>
+struct binary
+{
+  template <S X, T Y>
+  struct plus
+  {
+    static constexpr auto value = X + Y;
+  };
 };
 
 } // namespace aux
@@ -149,4 +160,22 @@ static_assert(std::is_same<result_1, expexted_1>::value);
 static_assert(std::is_same<result_2, expexted_2>::value);
 
 } // namespace fmap_test
+
+namespace zip_with_test
+{
+
+using arg1 = list<unsigned, 0x01, 0x02, 0x03, 0x04, 0x05>;
+using arg2 = list<unsigned, 0xA0, 0xB0, 0xC0>;
+
+using result = zip_with_t<
+  arg1,
+  arg2,
+  unsigned,
+  aux::binary<unsigned, unsigned>::plus>;
+
+using expexted = list<unsigned, 0xA1, 0xB2, 0xC3>;
+
+static_assert(std::is_same<result, expexted>::value);
+
+} // namespace zip_with_test
 

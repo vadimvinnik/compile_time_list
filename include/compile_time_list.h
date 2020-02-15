@@ -240,6 +240,42 @@ struct fmap<list<T, Xs...>, F>
 template <typename U, template <auto> typename F>
 using fmap_t = typename fmap<U, F>::result;
 
+template <
+  typename U,
+  typename V,
+  typename R,
+  template <auto, auto> typename F>
+struct zip_with // only reach this case when U or V is empty
+{
+  using result = list<R>;
+};
+
+template <
+  typename U,
+  typename V,
+  typename R,
+  template <auto, auto> typename F>
+using zip_with_t = typename zip_with<U, V, R, F>::result;
+
+template <
+  typename S,
+  S X,
+  S... Xs,
+  typename T,
+  T Y,
+  T... Ys,
+  typename R,
+  template <auto, auto> typename F>
+struct zip_with<list<S, X, Xs...>, list<T, Y, Ys...>, R, F>
+{
+private:
+  static constexpr auto head = F<X, Y>::value;
+  using tail = zip_with_t<list<S, Xs...>, list<T, Ys...>, R, F>;
+
+public:
+  using result = prepend_t<tail, head>;
+};
+
 template <typename U>
 struct for_each; // never reach this case
 
