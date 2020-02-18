@@ -1,5 +1,6 @@
 #include "compile_time_list.h"
 
+#include <algorithm>
 #include <functional>
 #include <type_traits>
 
@@ -34,24 +35,24 @@ struct binary
   struct less_than : std::bool_constant<(L < R)> {};
 };
 
-template <unsigned N, typename T>
+template <unsigned N, unsigned S, typename T>
 struct iota_step;
 
-template <unsigned N, unsigned I>
-struct iota_step<N, std::integral_constant<unsigned, I>>
+template <unsigned N, unsigned S, unsigned I>
+struct iota_step<N, S, std::integral_constant<unsigned, I>>
 {
-  using result = std::integral_constant<unsigned, I+1>;
+  using result = std::integral_constant<unsigned, std::min(N, I+S)>;
 };
 
-template <unsigned N>
-struct iota_step<N, std::integral_constant<unsigned, N>>
+template <unsigned N, unsigned S>
+struct iota_step<N, S, std::integral_constant<unsigned, N>>
 {};
 
-template <unsigned N>
+template <unsigned N, unsigned S>
 struct iota
 {
   template <typename T>
-  using step = iota_step<N, T>;
+  using step = iota_step<N, S, T>;
 };
 
 } // namespace aux
@@ -221,7 +222,7 @@ namespace unfoldr_iota_test
 using result = unfoldr_t<
   unsigned,
   std::integral_constant<unsigned, 0>,
-  aux::iota<10>::step>;
+  aux::iota<10, 1>::step>;
 
 using expexted = list<unsigned, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
 
@@ -261,4 +262,56 @@ using expexted = list<unsigned, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55>;
 static_assert(std::is_same<result, expexted>::value);
 
 } // namespace unfoldr_fibonacci_test
+
+namespace unfoldr_primes_test
+{
+
+template <typename C>
+struct eratosthenes_state
+{
+  static constexpr unsigned value = head_v<C>;
+};
+
+template <typename C>
+struct eratosthenes_step;
+
+template <typename U>
+struct eratosthenes_step<eratosthenes_state<U>>
+{
+private:
+  template <unsigned X>
+  struct predicate : std::bool_constant<(X % head_v<U> == 0)> {};
+
+  using filtered = typename partition<U, predicate>::right;
+
+public:
+  using result = eratosthenes_state<filtered>;
+};
+
+template <>
+struct eratosthenes_step<eratosthenes_state<list<unsigned>>> {};
+
+using odds_after_2 = unfoldr_t<
+  unsigned,
+  std::integral_constant<unsigned, 3>,
+  aux::iota<100, 2>::step>;
+
+using initial = prepend_t<odds_after_2, 2>;
+
+using result = unfoldr_t<
+  unsigned,
+  eratosthenes_state<initial>,
+  eratosthenes_step>;
+
+using expexted = list<
+  unsigned,
+   2,  3,  5,  7, 11,
+  13, 17, 19, 23, 29,
+  31, 37, 41, 43, 47,
+  53, 59, 61, 67, 71,
+  73, 79, 83, 89, 97>;
+
+static_assert(std::is_same<result, expexted>::value);
+
+} // namespace unfoldr_primes_test
 
