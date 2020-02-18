@@ -66,9 +66,9 @@ using t_3 = append_t<t_2, 2>;
 using t_4 = prepend_t<t_3, 3>;
 using t_5 = append_t<t_4, 4>;
 
-using expexted = list<int, 3, 1, 0, 2, 4>;
+using expected = list<int, 3, 1, 0, 2, 4>;
 
-static_assert(std::is_same<t_5, expexted>::value);
+static_assert(std::is_same<t_5, expected>::value);
 
 } // namespace append_prepend_test
 
@@ -79,9 +79,9 @@ using arg = list<int, 0, 1, 2, 3>;
 
 using result = revert_t<arg>;
 
-using expexted = list<int, 3, 2, 1, 0>;
+using expected = list<int, 3, 2, 1, 0>;
 
-static_assert(std::is_same<result, expexted>::value);
+static_assert(std::is_same<result, expected>::value);
 
 } // namespace revert_test
 
@@ -93,9 +93,9 @@ using arg_2 = list<int, 3, 4, 5, 6>;
 
 using result = concat_t<arg_1, arg_2>;
 
-using expexted = list<int, 0, 1, 2, 3, 4, 5, 6>;
+using expected = list<int, 0, 1, 2, 3, 4, 5, 6>;
 
-static_assert(std::is_same<result, expexted>::value);
+static_assert(std::is_same<result, expected>::value);
 
 } // namespace concat_test
 
@@ -121,11 +121,11 @@ namespace span_test
 using arg = list<int, 0, 9, 1, 8, 2, 7, 3, 6, 4, 5>;
 using result = span<arg, aux::bind_1st<int, 7>::is_not_equal_to>;
 
-using expexted_left = list<int, 0, 9, 1, 8, 2>;
-using expexted_right = list<int, 7, 3, 6, 4, 5>;
+using expected_left = list<int, 0, 9, 1, 8, 2>;
+using expected_right = list<int, 7, 3, 6, 4, 5>;
 
-static_assert(std::is_same<result::left, expexted_left>::value);
-static_assert(std::is_same<result::right, expexted_right>::value);
+static_assert(std::is_same<result::left, expected_left>::value);
+static_assert(std::is_same<result::right, expected_right>::value);
 
 } // namespace span_test
 
@@ -150,11 +150,11 @@ namespace partition_test
 using arg = list<int, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
 using result = partition<arg, aux::bind_1st<int, 2>::is_divisor_of>;
 
-using expexted_left = list<int, 0, 2, 4, 6, 8>;
-using expexted_right = list<int, 1, 3, 5, 7, 9>;
+using expected_left = list<int, 0, 2, 4, 6, 8>;
+using expected_right = list<int, 1, 3, 5, 7, 9>;
 
-static_assert(std::is_same<result::left, expexted_left>::value);
-static_assert(std::is_same<result::right, expexted_right>::value);
+static_assert(std::is_same<result::left, expected_left>::value);
+static_assert(std::is_same<result::right, expected_right>::value);
 
 } // namespace partition_test
 
@@ -165,11 +165,11 @@ using arg = list<int, 3, 2, 1, 0>;
 using result_1 = fmap_t<arg, aux::bind_1st<int, 3>::multiply_by>;
 using result_2 = fmap_t<arg, aux::bind_1st<int, 2>::is_divisor_of>;
 
-using expexted_1 = list<int, 9, 6, 3, 0>;
-using expexted_2 = list<int, false, true, false, true>;
+using expected_1 = list<int, 9, 6, 3, 0>;
+using expected_2 = list<int, false, true, false, true>;
 
-static_assert(std::is_same<result_1, expexted_1>::value);
-static_assert(std::is_same<result_2, expexted_2>::value);
+static_assert(std::is_same<result_1, expected_1>::value);
+static_assert(std::is_same<result_2, expected_2>::value);
 
 } // namespace fmap_test
 
@@ -185,9 +185,9 @@ using result = zip_with_t<
   unsigned,
   aux::binary<unsigned, unsigned>::plus>;
 
-using expexted = list<unsigned, 0xA1, 0xB2, 0xC3>;
+using expected = list<unsigned, 0xA1, 0xB2, 0xC3>;
 
-static_assert(std::is_same<result, expexted>::value);
+static_assert(std::is_same<result, expected>::value);
 
 } // namespace zip_with_test
 
@@ -196,9 +196,9 @@ namespace sort_test
 
 using arg = list<int, 0, 9, 1, 8, 2, 7, 3, 6, 4, 5>;
 using result = sort_t<arg, aux::binary<int, int>::less_than>;
-using expexted = list<int, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
+using expected = list<int, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
 
-static_assert(std::is_same<result, expexted>::value);
+static_assert(std::is_same<result, expected>::value);
 
 }
 
@@ -209,10 +209,10 @@ using arg = list<int, 0, 1, 2, 4, 8>;
 constexpr int result_1 = foldl_v<arg, 0, aux::binary<int, int>::plus>;
 constexpr int result_2 = foldr_v<arg, 0, aux::binary<int, int>::plus>;
 
-constexpr int expexted = 0 + 1 + 2 + 4 + 8;
+constexpr int expected = 0 + 1 + 2 + 4 + 8;
 
-static_assert(result_1 == expexted);
-static_assert(result_2 == expexted);
+static_assert(result_1 == expected);
+static_assert(result_2 == expected);
 
 } // namespace foldl_plus_test
 
@@ -224,9 +224,9 @@ using result = unfoldr_t<
   std::integral_constant<unsigned, 0>,
   aux::iota<10, 1>::step>;
 
-using expexted = list<unsigned, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
+using expected = list<unsigned, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
 
-static_assert(std::is_same<result, expexted>::value);
+static_assert(std::is_same<result, expected>::value);
 
 } // namespace unfoldr_iota_test
 
@@ -257,9 +257,9 @@ using result = unfoldr_t<
   fibonacci_state<1, 1, 10>,
   fibonacci_step>;
 
-using expexted = list<unsigned, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55>;
+using expected = list<unsigned, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55>;
 
-static_assert(std::is_same<result, expexted>::value);
+static_assert(std::is_same<result, expected>::value);
 
 } // namespace unfoldr_fibonacci_test
 
@@ -303,7 +303,7 @@ using result = unfoldr_t<
   eratosthenes_state<initial>,
   eratosthenes_step>;
 
-using expexted = list<
+using expected = list<
   unsigned,
    2,  3,  5,  7, 11,
   13, 17, 19, 23, 29,
@@ -311,7 +311,7 @@ using expexted = list<
   53, 59, 61, 67, 71,
   73, 79, 83, 89, 97>;
 
-static_assert(std::is_same<result, expexted>::value);
+static_assert(std::is_same<result, expected>::value);
 
 } // namespace unfoldr_primes_test
 
