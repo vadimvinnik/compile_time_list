@@ -276,6 +276,44 @@ public:
   using result = prepend_t<tail, head>;
 };
 
+template <
+  typename U,
+  template <auto, auto> typename C>
+struct sort; // forward, defined further
+
+template <
+  typename U,
+  template <auto, auto> typename C>
+using sort_t = typename sort<U, C>::result;
+
+template <
+  typename U,
+  template <auto, auto> typename C>
+struct sort // only reached if U is not empty
+{
+private:
+  template <auto Z>
+  struct compare_to_current : C<Z, head_v<U>>
+  {};
+
+  using sorted_tail = sort_t<tail_t<U>, C>;
+  using partition_on_current = partition<sorted_tail, compare_to_current>;
+  using left = typename partition_on_current::left;
+  using old_right = typename partition_on_current::right;
+  using new_right = prepend_t<old_right, head_v<U>>;
+
+public:
+  using result = concat_t<left, new_right>;
+};
+
+template <
+  typename T,
+  template <auto, auto> typename C>
+struct sort<list<T>, C>
+{
+  using result = list<T>;
+};
+
 template <typename U>
 struct for_each; // never reach this case
 

@@ -29,6 +29,9 @@ struct binary
   {
     static constexpr auto value = X + Y;
   };
+
+  template <S L, T R>
+  struct less_than : std::bool_constant<(L < R)> {};
 };
 
 } // namespace aux
@@ -166,6 +169,17 @@ using expexted = list<unsigned, 0xA1, 0xB2, 0xC3>;
 static_assert(std::is_same<result, expexted>::value);
 
 } // namespace zip_with_test
+
+namespace sort_test
+{
+
+using arg = list<int, 0, 9, 1, 8, 2, 7, 3, 6, 4, 5>;
+using result = sort_t<arg, aux::binary<int, int>::less_than>;
+using expexted = list<int, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
+
+static_assert(std::is_same<result, expexted>::value);
+
+}
 
 namespace fold_plus_test
 {
