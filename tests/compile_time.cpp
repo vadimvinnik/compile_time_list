@@ -34,6 +34,26 @@ struct binary
   struct less_than : std::bool_constant<(L < R)> {};
 };
 
+template <unsigned N, typename T>
+struct iota_step;
+
+template <unsigned N, unsigned I>
+struct iota_step<N, std::integral_constant<unsigned, I>>
+{
+  using result = std::integral_constant<unsigned, I+1>;
+};
+
+template <unsigned N>
+struct iota_step<N, std::integral_constant<unsigned, N>>
+{};
+
+template <unsigned N>
+struct iota
+{
+  template <typename T>
+  using step = iota_step<N, T>;
+};
+
 } // namespace aux
 
 namespace append_prepend_test
@@ -194,4 +214,51 @@ static_assert(result_1 == expexted);
 static_assert(result_2 == expexted);
 
 } // namespace foldl_plus_test
+
+namespace unfoldr_iota_test
+{
+
+using result = unfoldr_t<
+  unsigned,
+  std::integral_constant<unsigned, 0>,
+  aux::iota<10>::step>;
+
+using expexted = list<unsigned, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
+
+static_assert(std::is_same<result, expexted>::value);
+
+} // namespace unfoldr_iota_test
+
+namespace unfoldr_fibonacci_test
+{
+
+template <unsigned A, unsigned B, unsigned K>
+struct fibonacci_state
+{
+  static constexpr unsigned value = A;
+};
+
+template <typename T>
+struct fibonacci_step;
+
+template <unsigned A, unsigned B, unsigned K>
+struct fibonacci_step<fibonacci_state<A, B, K>>
+{
+  using result = fibonacci_state<B, A+B, K-1>;
+};
+
+template <unsigned A, unsigned B>
+struct fibonacci_step<fibonacci_state<A, B, 0>>
+{};
+
+using result = unfoldr_t<
+  unsigned,
+  fibonacci_state<1, 1, 10>,
+  fibonacci_step>;
+
+using expexted = list<unsigned, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55>;
+
+static_assert(std::is_same<result, expexted>::value);
+
+} // namespace unfoldr_fibonacci_test
 
