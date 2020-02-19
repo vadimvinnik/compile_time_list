@@ -35,26 +35,6 @@ struct binary
   struct less_than : std::bool_constant<(L < R)> {};
 };
 
-template <unsigned N, unsigned S, typename T>
-struct iota_step;
-
-template <unsigned N, unsigned S, unsigned I>
-struct iota_step<N, S, std::integral_constant<unsigned, I>>
-{
-  using result = std::integral_constant<unsigned, std::min(N, I+S)>;
-};
-
-template <unsigned N, unsigned S>
-struct iota_step<N, S, std::integral_constant<unsigned, N>>
-{};
-
-template <unsigned N, unsigned S>
-struct iota
-{
-  template <typename T>
-  using step = iota_step<N, S, T>;
-};
-
 } // namespace aux
 
 namespace append_prepend_test
@@ -216,13 +196,41 @@ static_assert(result_2 == expected);
 
 } // namespace foldl_plus_test
 
+namespace aux
+{
+
+template <typename T, T A, T B, T D>
+struct iota
+{
+  using item_type = T;
+
+  using init = std::integral_constant<T, A>;
+
+  template <typename X>
+  using can_proceed = std::bool_constant<(X::value < B)>;
+
+  template <typename X>
+  using get_item = X;
+
+  template <typename X>
+  struct step
+  {
+    using result = std::integral_constant<T, X::value + D>;
+  };
+};
+
+} // namespace aux
+
 namespace unfoldr_iota_test
 {
 
+using iota = aux::iota<unsigned, 0, 10, 1>;
 using result = unfoldr_t<
-  unsigned,
-  std::integral_constant<unsigned, 0>,
-  aux::iota<10, 1>::step>;
+  iota::item_type,
+  iota::init,
+  iota::can_proceed,
+  iota::get_item,
+  iota::step>;
 
 using expected = list<unsigned, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>;
 
@@ -234,28 +242,34 @@ namespace unfoldr_fibonacci_test
 {
 
 template <unsigned A, unsigned B, unsigned K>
-struct fibonacci_state
+struct state
 {
-  static constexpr unsigned value = A;
+  static constexpr unsigned current = A;
+  static constexpr unsigned next = B;
+  static constexpr unsigned remaining_count = K;
 };
 
 template <typename T>
-struct fibonacci_step;
+using can_proceed = std::bool_constant<T::remaining_count != 0>;
 
-template <unsigned A, unsigned B, unsigned K>
-struct fibonacci_step<fibonacci_state<A, B, K>>
+template <typename T>
+using get_value = std::integral_constant<unsigned, T::current>;
+
+template <typename T>
+struct step
 {
-  using result = fibonacci_state<B, A+B, K-1>;
+  using result = state<
+    T::next,
+    T::next + T::current,
+    T::remaining_count - 1>;
 };
-
-template <unsigned A, unsigned B>
-struct fibonacci_step<fibonacci_state<A, B, 0>>
-{};
 
 using result = unfoldr_t<
   unsigned,
-  fibonacci_state<1, 1, 10>,
-  fibonacci_step>;
+  state<1, 1, 10>,
+  can_proceed,
+  get_value,
+  step>;
 
 using expected = list<unsigned, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55>;
 
@@ -263,55 +277,60 @@ static_assert(std::is_same<result, expected>::value);
 
 } // namespace unfoldr_fibonacci_test
 
-namespace unfoldr_primes_test
+namespace unfoldr_eratosthenes_test
 {
 
-template <typename C>
-struct eratosthenes_state
-{
-  static constexpr unsigned value = head_v<C>;
-};
+template <typename L>
+struct can_proceed : std::bool_constant<true> {};
 
-template <typename C>
-struct eratosthenes_step;
+template <typename T>
+struct can_proceed<list<T>> : std::bool_constant<false> {};
 
-template <typename U>
-struct eratosthenes_step<eratosthenes_state<U>>
+template <typename L>
+using get_item = std::integral_constant<unsigned, head_v<L>>;
+
+template <typename L>
+struct step
 {
 private:
   template <unsigned X>
-  struct predicate : std::bool_constant<(X % head_v<U> == 0)> {};
-
-  using filtered = typename partition<U, predicate>::right;
+  struct predicate : std::bool_constant<(X % head_v<L> == 0)> {};
 
 public:
-  using result = eratosthenes_state<filtered>;
+  using result = typename partition<L, predicate>::right;
 };
 
-template <>
-struct eratosthenes_step<eratosthenes_state<list<unsigned>>> {};
-
+using iota = aux::iota<unsigned, 3, 500, 2>;
 using odds_after_2 = unfoldr_t<
-  unsigned,
-  std::integral_constant<unsigned, 3>,
-  aux::iota<100, 2>::step>;
+  iota::item_type,
+  iota::init,
+  iota::can_proceed,
+  iota::get_item,
+  iota::step>;
 
 using initial = prepend_t<odds_after_2, 2>;
 
 using result = unfoldr_t<
   unsigned,
-  eratosthenes_state<initial>,
-  eratosthenes_step>;
+  initial,
+  can_proceed,
+  get_item,
+  step>;
 
 using expected = list<
   unsigned,
-   2,  3,  5,  7, 11,
-  13, 17, 19, 23, 29,
-  31, 37, 41, 43, 47,
-  53, 59, 61, 67, 71,
-  73, 79, 83, 89, 97>;
+    2,    3,    5,    7,   11,   13,   17,   19,   23,  29,
+   31,   37,   41,   43,   47,   53,   59,   61,   67,  71,
+   73,   79,   83,   89,   97,  101,  103,  107,  109,  113,
+  127,  131,  137,  139,  149,  151,  157,  163,  167,  173,
+  179,  181,  191,  193,  197,  199,  211,  223,  227,  229,
+  233,  239,  241,  251,  257,  263,  269,  271,  277,  281,
+  283,  293,  307,  311,  313,  317,  331,  337,  347,  349,
+  353,  359,  367,  373,  379,  383,  389,  397,  401,  409,
+  419,  421,  431,  433,  439,  443,  449,  457,  461,  463,
+  467,  479,  487,  491,  499>;
 
 static_assert(std::is_same<result, expected>::value);
 
-} // namespace unfoldr_primes_test
+} // namespace unfoldr_eratosthenes_test
 

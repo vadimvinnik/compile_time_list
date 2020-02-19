@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 namespace compile_time_list
 {
 
@@ -371,8 +369,39 @@ template <
   typename T,
   typename S,
   template <typename> typename F,
-  typename = std::void_t<>>
-struct unfoldr
+  template <typename> typename G,
+  template <typename> typename H>
+struct unfoldr;
+
+template <
+  typename T,
+  typename S,
+  template <typename> typename F,
+  template <typename> typename G,
+  template <typename> typename H>
+using unfoldr_t = typename unfoldr<T, S, F, G, H>::result;
+
+template <
+  typename T,
+  typename S,
+  template <typename> typename F,
+  template <typename> typename G,
+  template <typename> typename H,
+  bool B>
+struct unfoldr_if // only reach this case when B is true
+{
+  using result = prepend_t<
+    unfoldr_t<T, typename H<S>::result, F, G, H>,
+    G<S>::value>;
+};
+
+template <
+  typename T,
+  typename S,
+  template <typename> typename F,
+  template <typename> typename G,
+  template <typename> typename H>
+struct unfoldr_if<T, S, F, G, H, false>
 {
   using result = list<T>;
 };
@@ -380,22 +409,11 @@ struct unfoldr
 template <
   typename T,
   typename S,
-  template <typename> typename F>
-using unfoldr_t = typename unfoldr<T, S, F>::result;
-
-template <
-  typename T,
-  typename S,
-  template <typename> typename F>
-struct unfoldr<T, S, F, std::void_t<typename F<S>::result>>
-{
-private:
-  using new_seed = typename F<S>::result;
-  using new_unfold = unfoldr_t<T, new_seed, F>;
-
-public:
-  using result = prepend_t<new_unfold, S::value>;
-};
+  template <typename> typename F,
+  template <typename> typename G,
+  template <typename> typename H>
+struct unfoldr : unfoldr_if<T, S, F, G, H, F<S>::value>
+{};
 
 } // namespace compile_time_list
 
