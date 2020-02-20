@@ -37,6 +37,26 @@ struct binary
 
 } // namespace aux
 
+namespace size_empty_test
+{
+
+using arg = list<int>;
+
+static_assert(size_v<arg> == 0);
+static_assert(is_empty_v<arg>);
+
+} // namespace size_empty_test
+
+namespace size_non_empty_test
+{
+
+using arg = list<int, 0, 1, 2>;
+
+static_assert(size_v<arg> == 3);
+static_assert(!is_empty_v<arg>);
+
+} // namespace size_non_empty_test
+
 namespace append_prepend_test
 {
 
@@ -94,6 +114,50 @@ static_assert(std::is_same<result_2, arg>::value);
 static_assert(std::is_same<result_3, empty>::value);
 
 } // namespace concat_empty_test
+
+namespace uncons_test
+{
+
+using arg = list<int, 0, 1, 2>;
+using expected_tail = list<int, 1, 2>;
+
+static_assert(head_v<arg> == 0);
+static_assert(std::is_same<tail_t<arg>, expected_tail>::value);
+
+} // namespace uncons_test
+
+namespace uncons_empty_tail_test
+{
+
+using arg = list<int, 0>;
+using expected_tail = list<int>;
+
+static_assert(head_v<arg> == 0);
+static_assert(std::is_same<tail_t<arg>, expected_tail>::value);
+
+} // namespace uncons_empty_tail_test
+
+namespace unconsr_test
+{
+
+using arg = list<int, 0, 1, 2>;
+using expected_init = list<int, 0, 1>;
+
+static_assert(last_v<arg> == 2);
+static_assert(std::is_same<init_t<arg>, expected_init>::value);
+
+} // namespace unconsr_test
+
+namespace unconsr_empty_init_test
+{
+
+using arg = list<int, 0>;
+using expected_init = list<int>;
+
+static_assert(last_v<arg> == 0);
+static_assert(std::is_same<init_t<arg>, expected_init>::value);
+
+} // namespace unconsr_empty_tail_test
 
 namespace span_test
 {

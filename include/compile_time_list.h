@@ -17,6 +17,9 @@ using item_t = typename U::item_type;
 template <typename U>
 constexpr auto size_v = U::size;
 
+template <typename U>
+constexpr bool is_empty_v = (size_v<U> == 0);
+
 template <typename U, item_t<U> X>
 struct append; // never reach this case
 
@@ -69,6 +72,35 @@ using tail_t = typename uncons<U>::tail;
 
 template <typename U>
 constexpr item_t<U> head_v = uncons<U>::head;
+
+template <typename U>
+struct unconsr; // never reach this case
+
+template <typename U>
+using init_t = typename unconsr<U>::init;
+
+template <typename U>
+constexpr item_t<U> last_v = unconsr<U>::last;
+
+template <typename T, T X>
+struct unconsr<list<T, X>>
+{
+  static constexpr T last = X;
+
+  using init = list<T>;
+};
+
+template <typename T, T X, T... Xs>
+struct unconsr<list<T, X, Xs...>>
+{
+private:
+  using remainder = list<T, Xs...>;
+
+public:
+  static constexpr T last = last_v<remainder>;
+
+  using init = prepend_t<init_t<list<T, Xs...>>, X>;
+};
 
 template <typename U>
 struct revert; // forward, defined further
