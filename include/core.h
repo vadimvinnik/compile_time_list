@@ -447,5 +447,13 @@ template <
 struct unfoldr : unfoldr_if<T, S, F, G, H, F<S>::value>
 {};
 
+template <typename T>
+using generate_t = unfoldr_t<
+  typename T::item_type,
+  typename T::init,
+  T::template can_proceed,
+  T::template get_item,
+  T::template step>;
+
 } // namespace compile_time_list
 
